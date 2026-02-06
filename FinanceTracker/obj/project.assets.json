@@ -45,19 +45,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\jgcc_\\.nuget\\packages\\": {}
+    "C:\\Users\\Josue Gotay\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\jgcc_\\OneDrive\\Documents\\CSE325\\TeamProject\\cse325_group_project\\FinanceTracker\\FinanceTracker.csproj",
+      "projectUniqueName": "C:\\Users\\Josue Gotay\\Desktop\\cse325_group_project\\FinanceTracker\\FinanceTracker.csproj",
       "projectName": "FinanceTracker",
-      "projectPath": "C:\\Users\\jgcc_\\OneDrive\\Documents\\CSE325\\TeamProject\\cse325_group_project\\FinanceTracker\\FinanceTracker.csproj",
-      "packagesPath": "C:\\Users\\jgcc_\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\jgcc_\\OneDrive\\Documents\\CSE325\\TeamProject\\cse325_group_project\\FinanceTracker\\obj\\",
+      "projectPath": "C:\\Users\\Josue Gotay\\Desktop\\cse325_group_project\\FinanceTracker\\FinanceTracker.csproj",
+      "packagesPath": "C:\\Users\\Josue Gotay\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Josue Gotay\\Desktop\\cse325_group_project\\FinanceTracker\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\jgcc_\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Josue Gotay\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
