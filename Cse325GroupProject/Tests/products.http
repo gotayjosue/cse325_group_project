@@ -1,0 +1,64 @@
+### LOGIN (get JWT token)
+POST http://localhost:5193/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "jgcc26@gmail.com",
+  "password": "1234"
+}
+
+###
+# After running the login request, copy the token from the response
+# and paste it below:
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI2OTg2MDJkNjRiZDQ5ZGE2ODA1MjA4ZmQiLCJlbWFpbCI6ImpnY2MyNkBnbWFpbC5jb20iLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiSmVzdXMgQ29udHJlcmFzIiwibmJmIjoxNzcwMzkzMjY0LCJleHAiOjE3NzA5OTgwNjQsImlhdCI6MTc3MDM5MzI2NCwiaXNzIjoiaW52ZW50b3J5LWFwaSIsImF1ZCI6ImludmVudG9yeS1jbGllbnQifQ.mPdKeDzQZ9RXI0mQvByxx0YJgZLIvvYZq6GHZJ_TWCY
+### GET ALL PRODUCTS (public)
+GET http://localhost:5193/api/ClothingProducts
+Accept: application/json
+
+
+### GET PRODUCT BY ID (public)
+GET http://localhost:5193/api/ClothingProducts/6982f84790f7e97cb5208ac1
+Accept: application/json
+
+
+### CREATE PRODUCT (ADMIN ONLY)
+POST http://localhost:5193/api/ClothingProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "New Test Productsss2",
+  "category": "Shirt",
+  "size": "M",
+  "quantity": 10,
+  "location": "A-01",
+  "providerName": "TestProvider",
+  "expirationDate": "2026-12-31T00:00:00Z"
+}
+
+
+### UPDATE PRODUCT (ADMIN OR EMPLOYEE)
+PUT http://localhost:5193/api/ClothingProducts/69860ec030456cc8b59e248f
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Product Nameasdadadaasdadd223",
+  "category": "Shirt",
+  "size": "L",
+  "quantity": 20,
+  "location": "B-02",
+  "providerName": "UpdatedProvider",
+  "expirationDate": "2027-01-01T00:00:00Z"
+}
+
+
+### DELETE PRODUCT (ADMIN ONLY)
+DELETE http://localhost:5193/api/ClothingProducts/69860b3947164148b2dbd62b
+Authorization: Bearer {{token}}
+
+
+### DEBUG ENDPOINT (optional)
+GET http://localhost:5193/api/ClothingProducts/debug
+Accept: application/json

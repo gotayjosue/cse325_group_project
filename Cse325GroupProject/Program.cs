@@ -25,6 +25,7 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
 
 builder.Services.AddControllers();
 
+
 // JWT Authentication Configuration
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "fallback_secret_key_long_enough_for_sha256";
 var key = Encoding.ASCII.GetBytes(jwtSecret);
@@ -50,6 +51,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ClothingProductService>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

@@ -18,9 +18,9 @@ namespace Cse325GroupProject.Services
             _configuration = configuration;
             // Assumes the database name is in .env or appsettings. If not, we'll need to specify it.
             // For now, let's assume "Cse325db" or get it from env if possible.
-            var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME") ?? "Cse325GroupProject";
+            var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME") ?? "inventory-tracker";
             var database = mongoClient.GetDatabase(databaseName);
-            _users = database.GetCollection<User>("users");
+            _users = database.GetCollection<User>("Users");
         }
 
         public async Task<AuthResponse?> LoginAsync(LoginRequest request)
