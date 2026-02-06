@@ -1,0 +1,50 @@
+﻿@page "/"
+@using MongoDB.Driver
+@inject IMongoClient MongoClient
+@inject IConfiguration Config
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<div class="alert alert-info mt-4">
+    <h3>MongoDB Connection Status</h3>
+    @if (databaseNames != null)
+    {
+        <p class="text-success">Connected! Found databases:</p>
+        <ul>
+            @foreach (var name in databaseNames)
+            {
+                <li>@name</li>
+            }
+        </ul>
+    }
+    else if (errorMessage != null)
+    {
+        <p class="text-danger">Connection Failed: @errorMessage</p>
+    }
+    else
+    {
+        <p>Connecting...</p>
+    }
+</div>
+
+@code {
+    private List<string>? databaseNames;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var databasesCursor = await MongoClient.ListDatabaseNamesAsync();
+            databaseNames = await databasesCursor.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}
