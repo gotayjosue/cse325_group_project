@@ -1,3 +1,13 @@
+### Register new user
+POST http://localhost:5193/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "johndoe@gmail.com",
+  "password": "1234"
+}
+
 ### LOGIN (get JWT token)
 POST http://localhost:5193/api/auth/login
 Content-Type: application/json
@@ -62,3 +72,4 @@ Authorization: Bearer {{token}}
 ### DEBUG ENDPOINT (optional)
 GET http://localhost:5193/api/ClothingProducts/debug
 Accept: application/json
+

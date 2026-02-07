@@ -47,6 +47,45 @@ namespace Cse325GroupProject.Services
             };
         }
 
+        public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
+        {
+            // Check if user already exists
+            var existingUser = await _users.Find(u => u.Email == request.Email).FirstOrDefaultAsync();
+            if (existingUser != null)
+            {
+                return null;
+            }
+
+            // Hash password
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            // Create new user
+            var newUser = new User
+            {
+                Name = request.Name,
+                Email = request.Email,
+                PasswordHash = hashedPassword,
+                Role = "customer"
+            };
+
+            await _users.InsertOneAsync(newUser);
+
+            // Generate token
+            var token = GenerateJwtToken(newUser);
+
+            return new AuthResponse
+            {
+                Token = token,
+                User = new UserDto
+                {
+                    Id = newUser.Id!,
+                    Name = newUser.Name,
+                    Email = newUser.Email,
+                    Role = newUser.Role
+                }
+            };
+        }
+
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");

@@ -32,5 +32,20 @@ namespace Cse325GroupProject.Controllers
 
             return Ok(response);
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Name) || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest(new { message = "Name, email and password are required." });
+            }
+            var response = await _authService.RegisterAsync(request);
+            if (response == null)
+            {
+                return BadRequest(new { message = "User with this email already exists." });
+            }
+            return Ok(response);
+        }
     }
 }
