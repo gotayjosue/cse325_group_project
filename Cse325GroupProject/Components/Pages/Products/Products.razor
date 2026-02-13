@@ -1,0 +1,245 @@
+@page "/products"
+@using Cse325GroupProject.Models
+@using Cse325GroupProject.Services
+@inject ClothingProductService ProductService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Inventory Management</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Inventory Management</h1>
+        <button class="btn btn-primary" @onclick="PrepareCreate">
+            <i class="bi bi-plus-lg"></i> Add New Product
+        </button>
+    </div>
+
+    @if (statusMessage != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @statusMessage
+            <button type="button" class="btn-close" @onclick="() => statusMessage = null" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (showForm)
+    {
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">@(isEditing ? "Edit Product" : "Add New Product")</h5>
+            </div>
+            <div class="card-body">
+                <EditForm Model="@currentProduct" OnValidSubmit="SaveProduct">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Name</label>
+                            <InputText id="name" class="form-control" @bind-Value="currentProduct.Name"
+                                placeholder="Enter product name" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category</label>
+                            <InputText id="category" class="form-control" @bind-Value="currentProduct.Category"
+                                placeholder="e.g. Shirts, Pants" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="size" class="form-label">Size</label>
+                            <InputText id="size" class="form-control" @bind-Value="currentProduct.Size"
+                                placeholder="S, M, L, XL" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <InputNumber id="quantity" class="form-control" @bind-Value="currentProduct.Quantity" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="location" class="form-label">Location</label>
+                            <InputText id="location" class="form-control" @bind-Value="currentProduct.Location"
+                                placeholder="Shelf A1" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="provider" class="form-label">Provider Name</label>
+                            <InputText id="provider" class="form-control" @bind-Value="currentProduct.ProviderName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="expiration" class="form-label">Expiration Date</label>
+                            <InputDate id="expiration" class="form-control" @bind-Value="currentProduct.ExpirationDate" />
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" @onclick="CancelForm">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save Product</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+
+    @if (products == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!products.Any())
+    {
+        <div class="alert alert-info">
+            No products found. Start by adding one!
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover border">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Size</th>
+                        <th>Qty</th>
+                        <th>Location</th>
+                        <th>Provider</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in products)
+                    {
+                        <tr>
+                            <td>@product.Name</td>
+                            <td>@product.Category</td>
+                            <td>@product.Size</td>
+                            <td>@product.Quantity</td>
+                            <td>@product.Location</td>
+                            <td>@product.ProviderName</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => PrepareEdit(product)"
+                                        title="Edit">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(product.Id)"
+                                        title="Delete">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Product>? products;
+    private Product currentProduct = new();
+    private bool showForm = false;
+    private bool isEditing = false;
+    private string? statusMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        try
+        {
+            products = await ProductService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error (log it, show message)
+            Console.WriteLine($"Error loading products: {ex.Message}");
+        }
+    }
+
+    private void PrepareCreate()
+    {
+        currentProduct = new Product();
+        isEditing = false;
+        showForm = true;
+        statusMessage = null;
+    }
+
+    private void PrepareEdit(Product product)
+    {
+        // Clone the object to avoid immediate updates in the table before saving
+        currentProduct = new Product
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Category = product.Category,
+                Size = product.Size,
+                Quantity = product.Quantity,
+                Location = product.Location,
+                ProviderName = product.ProviderName,
+                ExpirationDate = product.ExpirationDate
+            };
+        isEditing = true;
+        showForm = true;
+        statusMessage = null;
+    }
+
+    private void CancelForm()
+    {
+        showForm = false;
+        currentProduct = new Product();
+    }
+
+    private async Task SaveProduct()
+    {
+        try
+        {
+            if (isEditing)
+            {
+                await ProductService.UpdateAsync(currentProduct.Id, currentProduct);
+                statusMessage = "Product updated successfully!";
+            }
+            else
+            {
+                await ProductService.CreateAsync(currentProduct);
+                statusMessage = "Product added successfully!";
+            }
+
+            showForm = false;
+            await LoadProducts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving product: {ex.Message}");
+        }
+    }
+
+    private async Task ConfirmDelete(string id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this product?");
+        if (confirmed)
+        {
+            await DeleteProduct(id);
+        }
+    }
+
+    private async Task DeleteProduct(string id)
+    {
+        try
+        {
+            await ProductService.DeleteAsync(id);
+            statusMessage = "Product deleted successfully!";
+            await LoadProducts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting product: {ex.Message}");
+        }
+    }
+}
