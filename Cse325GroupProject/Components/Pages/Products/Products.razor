@@ -1,10 +1,13 @@
 @page "/products"
 @using Cse325GroupProject.Models
-@using Cse325GroupProject.Services
-@inject ClothingProductService ProductService
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject IHttpClientFactory ClientFactory
+@inject ProtectedSessionStorage SessionStorage
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
+
 
 <PageTitle>Inventory Management</PageTitle>
 
@@ -144,6 +147,27 @@
     private bool showForm = false;
     private bool isEditing = false;
     private string? statusMessage;
+    private HttpClient Api => _api ??= CreateApiClient();
+    private HttpClient? _api;
+
+    private HttpClient CreateApiClient()
+    {
+        var client = ClientFactory.CreateClient("ServerAPI");
+        client.BaseAddress = new Uri(Navigation.BaseUri); // dynamic, per environment
+        return client;
+    }
+
+    private async Task AttachTokenAsync()
+    {
+        var result = await SessionStorage.GetAsync<string>("authToken");
+        var token = result.Success ? result.Value : null;
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            Api.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,14 +178,15 @@
     {
         try
         {
-            products = await ProductService.GetAllAsync();
+            await AttachTokenAsync();
+            products = await Api.GetFromJsonAsync<List<Product>>("api/ClothingProducts");
         }
         catch (Exception ex)
         {
-            // Handle error (log it, show message)
             Console.WriteLine($"Error loading products: {ex.Message}");
         }
     }
+
 
     private void PrepareCreate()
     {
@@ -195,6 +220,32 @@
         showForm = false;
         currentProduct = new Product();
     }
+    private async Task CreateProduct(Product product)
+    {
+        await AttachTokenAsync();
+        var response = await Api.PostAsJsonAsync("api/ClothingProducts", product);
+
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Create failed: {response.StatusCode}");
+    }
+
+    private async Task UpdateProduct(Product product)
+    {
+        await AttachTokenAsync();
+        var response = await Api.PutAsJsonAsync($"api/ClothingProducts/{product.Id}", product);
+
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Update failed: {response.StatusCode}");
+    }
+
+    private async Task DeleteProductApi(string id)
+    {
+        await AttachTokenAsync();
+        var response = await Api.DeleteAsync($"api/ClothingProducts/{id}");
+
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Delete failed: {response.StatusCode}");
+    }
 
     private async Task SaveProduct()
     {
@@ -202,12 +253,12 @@
         {
             if (isEditing)
             {
-                await ProductService.UpdateAsync(currentProduct.Id, currentProduct);
+                await UpdateProduct(currentProduct);
                 statusMessage = "Product updated successfully!";
             }
             else
             {
-                await ProductService.CreateAsync(currentProduct);
+                await CreateProduct(currentProduct);
                 statusMessage = "Product added successfully!";
             }
 
@@ -233,7 +284,7 @@
     {
         try
         {
-            await ProductService.DeleteAsync(id);
+            await DeleteProductApi(id);
             statusMessage = "Product deleted successfully!";
             await LoadProducts();
         }

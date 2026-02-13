@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Cse325GroupProject.Services;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Components;
 
 // Load .env file
 Env.Load();
@@ -52,6 +54,10 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ClothingProductService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddHttpClient("ServerAPI");
+
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
