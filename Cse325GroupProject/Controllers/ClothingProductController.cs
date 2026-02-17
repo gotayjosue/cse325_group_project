@@ -32,7 +32,6 @@ public class ClothingProductsController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<Product>> GetById(string id)
     {
-        Console.WriteLine(BCrypt.Net.BCrypt.HashPassword("1234"));
         var product = await _service.GetByIdAsync(id);
         if (product is null) return NotFound();
         return product;

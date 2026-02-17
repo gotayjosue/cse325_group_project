@@ -1,50 +1,79 @@
 ﻿@page "/"
-@using MongoDB.Driver
-@inject IMongoClient MongoClient
-@inject IConfiguration Config
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionStorage
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Home - Inventory System</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<div class="alert alert-info mt-4">
-    <h3>MongoDB Connection Status</h3>
-    @if (databaseNames != null)
-    {
-        <p class="text-success">Connected! Found databases:</p>
-        <ul>
-            @foreach (var name in databaseNames)
+<div class="hero-section text-center text-white d-flex align-items-center justify-content-center">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-3 animate-fade-in-up">Smart Inventory Management</h1>
+        <p class="lead mb-5 animate-fade-in-up delay-1">Streamline your operations, track products in real-time, and manage your team with ease.</p>
+        
+        <div class="animate-fade-in-up delay-2">
+            @if (isAuthenticated)
             {
-                <li>@name</li>
+                <a href="inventory" class="btn btn-light btn-lg px-5 py-3 fw-bold shadow-lg rounded-pill text-decoration-none">
+                    <i class="bi bi-box-seam-fill me-2 text-primary"></i> Go to Dashboard
+                </a>
             }
-        </ul>
-    }
-    else if (errorMessage != null)
-    {
-        <p class="text-danger">Connection Failed: @errorMessage</p>
-    }
-    else
-    {
-        <p>Connecting...</p>
-    }
+            else
+            {
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="signin" class="btn btn-light btn-lg px-4 py-3 fw-bold shadow-lg rounded-pill text-decoration-none">
+                        Get Started
+                    </a>
+                    <a href="signup" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold shadow-lg rounded-pill text-decoration-none">
+                        Create Account
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container my-5 py-5">
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="feature-card p-4 h-100 rounded-4 shadow-sm bg-white">
+                <div class="icon-box bg-primary-subtle text-primary rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="bi bi-graph-up-arrow fs-1"></i>
+                </div>
+                <h3 class="fw-bold h4">Real-Time Tracking</h3>
+                <p class="text-muted">Monitor stock levels instantly and never run out of essential items again.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card p-4 h-100 rounded-4 shadow-sm bg-white">
+                <div class="icon-box bg-success-subtle text-success rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="bi bi-shield-lock fs-1"></i>
+                </div>
+                <h3 class="fw-bold h4">Secure Access</h3>
+                <p class="text-muted">Role-based permissions ensure that only authorized personnel can make changes.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card p-4 h-100 rounded-4 shadow-sm bg-white">
+                <div class="icon-box bg-info-subtle text-info rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="bi bi-people fs-1"></i>
+                </div>
+                <h3 class="fw-bold h4">Team Collaboration</h3>
+                <p class="text-muted">Empower your employees with tools to manage inventory efficiently together.</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
-    private List<string>? databaseNames;
-    private string? errorMessage;
+    private bool isAuthenticated = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try
+        if (firstRender)
         {
-            var databasesCursor = await MongoClient.ListDatabaseNamesAsync();
-            databaseNames = await databasesCursor.ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
+            var result = await SessionStorage.GetAsync<string>("authToken");
+            isAuthenticated = result.Success && !string.IsNullOrEmpty(result.Value);
+            StateHasChanged();
         }
     }
 }

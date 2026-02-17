@@ -1,0 +1,134 @@
+@page "/signup"
+@using Cse325GroupProject.DTOs
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject IHttpClientFactory ClientFactory
+@inject ProtectedSessionStorage SessionStorage
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Sign Up - Inventory System</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card shadow">
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Join us to manage your inventory</p>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        <EditForm Model="@registerRequest" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <InputText class="form-control" @bind-Value="registerRequest.Name" placeholder="John Doe" />
+                <ValidationMessage For="@(() => registerRequest.Name)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <InputText class="form-control" @bind-Value="registerRequest.Email" placeholder="name@example.com" />
+                <ValidationMessage For="@(() => registerRequest.Email)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <InputText type="password" class="form-control" @bind-Value="registerRequest.Password" placeholder="••••••••" />
+                <ValidationMessage For="@(() => registerRequest.Password)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span> Creating account...</span>
+                }
+                else
+                {
+                    <span>Sign Up</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="auth-footer mt-4 text-center">
+            <p>Already have an account? <a href="signin">Sign In</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+    }
+    .auth-card {
+        width: 100%;
+        max-width: 400px;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+    }
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .auth-header h2 {
+        font-weight: 700;
+        color: #333;
+    }
+    .auth-header p {
+        color: #666;
+    }
+</style>
+
+@code {
+    private RegisterRequest registerRequest = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private async Task HandleRegister()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            var client = ClientFactory.CreateClient("ServerAPI");
+            client.BaseAddress = new Uri(Navigation.BaseUri);
+            var response = await client.PostAsJsonAsync("api/auth/register", registerRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                if (result != null)
+                {
+                    await SessionStorage.SetAsync("authToken", result.Token);
+                    await SessionStorage.SetAsync("userRole", result.User.Role);
+                    await SessionStorage.SetAsync("userName", result.User.Name);
+                    
+                    Navigation.NavigateTo("/inventory", forceLoad: true);
+                }
+            }
+            else
+            {
+                var errorData = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+                errorMessage = errorData?.ContainsKey("message") == true ? errorData["message"] : "Registration failed.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred during sign up. Please try again.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

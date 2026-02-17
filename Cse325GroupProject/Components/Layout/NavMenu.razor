@@ -1,6 +1,11 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage SessionStorage
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Cse325GroupProject</a>
+        <a class="navbar-brand" href="">Inventory System</a>
     </div>
 </div>
 
@@ -9,28 +14,55 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+            <button class="nav-link btn btn-link text-start w-100" @onclick='() => Navigation.NavigateTo("inventory")'>
+                <i class="bi bi-box-seam me-2" aria-hidden="true"></i> Inventory
+            </button>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="products">
-                <span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Inventory
-            </NavLink>
-        </div>
+        @if (!isAuthenticated)
+        {
+            <div class="nav-item px-3">
+                <button class="nav-link btn btn-link text-start w-100" @onclick='() => Navigation.NavigateTo("signin")'>
+                    <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i> Sign In
+                </button>
+            </div>
+            <div class="nav-item px-3">
+                <button class="nav-link btn btn-link text-start w-100" @onclick='() => Navigation.NavigateTo("signup")'>
+                    <i class="bi bi-person-plus me-2" aria-hidden="true"></i> Sign Up
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="nav-item px-3">
+                <button class="nav-link btn btn-link text-start w-100" @onclick="Logout">
+                    <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i> Log Out
+                </button>
+            </div>
+        }
     </nav>
 </div>
+
+@code {
+    private bool isAuthenticated = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var result = await SessionStorage.GetAsync<string>("authToken");
+            isAuthenticated = result.Success && !string.IsNullOrEmpty(result.Value);
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await SessionStorage.DeleteAsync("authToken");
+        await SessionStorage.DeleteAsync("userRole");
+        await SessionStorage.DeleteAsync("userName");
+        isAuthenticated = false;
+        Navigation.NavigateTo("/signin", forceLoad: true);
+    }
+}
 
