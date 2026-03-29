@@ -1,0 +1,59 @@
+/*This is the login.razor file*/
+@page "/login"
+@using Cse325GroupProject.DTOs
+@using Microsoft.AspNetCore.Components.Forms
+@inject Cse325GroupProject.Services.IAuthService AuthService
+@inject NavigationManager Navigation
+
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<h3>Login</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Email</label>
+        <InputText @bind-value="loginModel.Email" />
+    </div>
+
+    <div>
+        <label>Password</label>
+        <InputText type="password" @bind-value="loginModel.Password" />
+
+    </div>
+
+    <button type="submit">Login</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <p style="color:red">@error</p>
+}
+
+@code {
+    private LoginRequest loginModel = new();
+    private string error = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        var result = await AuthService.LoginAsync(loginModel);
+
+        if (result == null)
+        {
+            error = "Invalid email or password";
+            return;
+        }
+
+        // Store token
+        await LocalStorage.SetItemAsync("authToken", result.Token);
+        await LocalStorage.SetItemAsync("role", result.User);
+
+        // Redirect by role
+        if (result.User.Role == "admin")
+            Navigation.NavigateTo("/admin");
+        else
+            Navigation.NavigateTo("/dashboard");
+    }
+}
